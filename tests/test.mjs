@@ -13,6 +13,7 @@ assert.equal(u.parseTime("03:15"),195);
 assert.equal(u.parseTime("LIVE"),null);
 assert.equal(u.parseNumber("1.2M views"),1200000);
 assert.equal(u.parseNumber("1,5 mil visualizações"),1500);
+assert.equal(u.parseNumber("1,2 mi visualizações"),1200000);
 assert.equal(u.language("ja-JP"),"ja");
 const player={
   videoDetails:{videoId:"12345678901",lengthSeconds:"765",isLiveContent:false,defaultAudioLanguage:"ja-JP"},
@@ -39,6 +40,7 @@ const basic={...u.DEFAULTS,hideShorts:false,captions:"manual",captionLanguage:"j
   audioLanguage:"ja",minMinutes:"10",maxMinutes:"20",minViews:"100000",fromDate:"2025-01-01",toDate:"2025-12-31"};
 assert.equal(u.checkCard(card,basic,metadata,"").show,true);
 assert.equal(u.checkCard(card,{...basic,captionLanguage:"fr"},metadata,"").show,false);
+assert.equal(u.checkCard(card,basic,{...metadata,category:"Educação"},"").show,true);
 assert.equal(u.checkCard(card,{...basic,captions:"automatic",captionLanguage:""},metadata,"").show,true);
 assert.equal(u.checkCard(card,{...basic,captions:"manual"},null,"pending").show,false);
 assert.equal(u.checkCard(card,{...basic,captions:"manual"},null,"pending").pending,true);
