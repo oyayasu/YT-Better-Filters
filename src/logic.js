@@ -15,12 +15,12 @@
   }
   function parseNumber(text) {
     const s = normalize(text).replace(/\u00a0/g, " ");
-    const match = s.match(/(\d+(?:[.,]\d+)?)\s*(bilh(?:ao|oes)|bilhoes|billion|milhao|milhoes|millions?|mil|milhar|thousand|[kmb])\b/i);
+    const match = s.match(/(\d+(?:[.,]\d+)?)\s*(bilh(?:ao|oes)|bilhoes|billion|milhao|milhoes|millions?|milhar|thousand|mil|mio|mi|[kmb])\b/i);
     if (match) {
       let number = match[1].replace(",", ".");
       const scale = match[2];
       if (["mil", "milhar", "thousand", "k"].includes(scale)) return Math.round(Number(number) * 1e3);
-      if (["m", "milhao", "milhoes", "million", "millions"].includes(scale)) return Math.round(Number(number) * 1e6);
+      if (["m", "mi", "mio", "milhao", "milhoes", "million", "millions"].includes(scale)) return Math.round(Number(number) * 1e6);
       return Math.round(Number(number) * 1e9);
     }
     const plain = s.match(/\d[\d., ]*\d|\d/);
@@ -72,6 +72,19 @@
       duration: Number.isFinite(duration) && duration >= 0 ? duration : null,
       isLive: Boolean(video.isLiveContent || response.playabilityStatus?.liveStreamability),
     };
+  }
+  const CATEGORY_PT = {
+    "musica":"music","jogos":"gaming","entretenimento":"entertainment",
+    "educacao":"education","ciencia e tecnologia":"science & technology",
+    "pessoas e blogs":"people & blogs","noticias e politica":"news & politics",
+    "filmes e animacao":"film & animation","comedia":"comedy",
+    "esportes":"sports","viagens e eventos":"travel & events",
+    "animais de estimacao":"pets & animals","automoveis e veiculos":"autos & vehicles",
+    "como fazer e estilo":"howto & style","ativismo e organizacoes sem fins lucrativos":"nonprofits & activism",
+  };
+  function category(value) {
+    const key = normalize(value);
+    return CATEGORY_PT[key] || key;
   }
   const DEFAULTS = Object.freeze({
     enabled: true, captions: "any", captionLanguage: "", audioLanguage: "", category: "",
@@ -125,7 +138,7 @@
     }
     if (f.category) {
       if (!metadata.category) return { show: f.unknown === "show", unknown: true };
-      if (normalize(metadata.category) !== normalize(f.category)) return { show: false, reason: "Category" };
+      if (category(metadata.category) !== category(f.category)) return { show: false, reason: "Category" };
     }
     if (f.fromDate || f.toDate) {
       if (!metadata.publishDate) return { show: f.unknown === "show", unknown: true };
