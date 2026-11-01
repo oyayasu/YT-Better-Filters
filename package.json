@@ -1,0 +1,14 @@
+{
+  "name": "yt-better-filters",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Advanced YouTube search filters with manual subtitle detection; Chromium and Firefox",
+  "scripts": {
+    "test": "node tests/test.mjs",
+    "build": "node scripts/build.mjs",
+    "check": "npm test && npm run build"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
