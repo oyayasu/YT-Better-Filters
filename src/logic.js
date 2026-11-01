@@ -30,7 +30,7 @@
     const match = new RegExp("\\b" + variable + "\\s*=\\s*").exec(html);
     if (!match) return null;
     const start = html.indexOf("{", match.index + match[0].length);
-    if (start < 0 || start - match.index > 15) return null;
+    if (start < 0 || start - (match.index + match[0].length) > 5) return null;
     let depth = 0, quoted = false, escaped = false;
     for (let i = start; i < html.length && i < start + 2500000; i++) {
       const char = html[i];
