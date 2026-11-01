@@ -1,0 +1,39 @@
+name: Build YT Better Filters
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Run offline tests
+        run: npm test
+      - name: Build Chromium and Firefox
+        run: npm run build
+      - name: Verify both manifests
+        run: |
+          test -s dist/chromium/manifest.json
+          test -s dist/firefox/manifest.json
+          node -e "const fs=require('fs'); for(const b of ['chromium','firefox']) {const m=JSON.parse(fs.readFileSync('dist/'+b+'/manifest.json')); if(m.manifest_version!==3) process.exit(1)}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: YT-Better-Filters-Chrome-Brave
+          path: dist/chromium/
+          if-no-files-found: error
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        with:
+          name: YT-Better-Filters-Firefox
+          path: dist/firefox/
+          if-no-files-found: error
+          retention-days: 30
