@@ -15,7 +15,7 @@
   let settings = {...util.DEFAULTS};
   let root = null, panel = null, observer = null, lastHref = "";
   let scanTimer = 0, saveTimer = 0, activeJobs = 0, requested = 0, generation = 0;
-  const queue = [], queued = new Set(), cache = new Map(), failures = new Map();
+  const queue = [], queued = new Set(), inflight = new Set(), cache = new Map(), failures = new Map();
   const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
   async function loadSettings() {
@@ -134,7 +134,7 @@
     finally {clearTimeout(timeout);}
   }
   function enqueue(id) {
-    if(!id||metadata(id)||queued.has(id)||requested>=LIMIT)return;
+    if(!id||metadata(id)||queued.has(id)||inflight.has(id)||requested>=LIMIT)return;
     const failed=failures.get(id);
     if(failed&&Date.now()-failed.at<FAILURE_MS)return;
     queued.add(id);queue.push({id,generation});void pump();
@@ -144,11 +144,11 @@
       const task=queue.shift();
       queued.delete(task.id);
       if(task.generation!==generation||metadata(task.id))continue;
-      activeJobs++;requested++;
+      activeJobs++;requested++;inflight.add(task.id);
       void (async()=>{
         await sleep(350);
         try{await loadMetadata(task.id);}
-        finally{activeJobs--;scheduleScan();pump();}
+        finally{inflight.delete(task.id);activeJobs--;scheduleScan();pump();}
       })();
     }
   }
@@ -165,7 +165,7 @@
       const card=parseCard(element);
       const meta=card.videoId?metadata(card.videoId):null;
       let state="";
-      if(needs&&card.videoId&&card.kind==="video"&&!meta){
+      if(needs&&card.videoId&&(card.kind==="video"||card.kind==="short")&&!meta){
         // Avoid fetching metadata for items rejected by local title, duration or view filters.
         const local=util.checkCard(card,{...settings,captions:"any",captionLanguage:"",
           audioLanguage:"",category:"",fromDate:"",toDate:""},null,"");
